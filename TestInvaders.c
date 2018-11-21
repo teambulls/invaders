@@ -204,9 +204,9 @@ int main() {
             }
             
             /* Set alien's next position */
-            if (alien[i].c < tank.c)
+            if (aliens[i].c < tank.c)
                ++aliens[i].c;
-            else if (alien[i].c > tank.c)
+            else if (aliens[i].c > tank.c)
                --aliens[i].c;
                
             /* Check alien's next positions */
