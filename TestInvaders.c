@@ -9,6 +9,7 @@
 void menu(struct options *settings);
 void gameover(int win);
 
+unsigned int lossType = 0;
 
 /* The main function handles user input, the game visuals, and checks for win/loss conditions */
 int main() {
@@ -17,7 +18,7 @@ int main() {
    struct shoot shot[3];
    struct bomb bomb[MAX_BOMBS];
    struct options settings;
-   unsigned int input, loops=0, i=0, j=0, currentshots=0, currentbombs=0, currentaliens=1, count = 0, lossType = 0;
+   unsigned int input, loops=0, i=0, j=0, currentshots=0, currentbombs=0, currentaliens=1, count = 0;
    int random=0, score=0, win=-1;
    char tellscore[30];
    
