@@ -14,6 +14,8 @@
 #include <curses.h>
 #include <time.h>
 #include "invaderstructs.h"
+#include <time.h>
+
 
 #define MAX_BOMBS 1000
 
@@ -59,7 +61,19 @@ int main() {
       aliens[i].pc = 0;
       aliens[i].ch = '#';
       aliens[i].alive = 1;
-      aliens[i].direction = 'r';
+      aliens[i].behavior = 1+(rand()%4);
+      if(aliens[i].behavior == 1){   /*wanderer*/
+         aliens[i].direction = 'w';    /*will create a character to randomize left/right movements later on*/
+      }
+      if(aliens[i].behavior == 2){   /*dodge*/
+         aliens[i].direction = 'd';    /*will create a character to dodge tank movements later on*/
+      }
+      if(aliens[i].behavior == 3){  /*follower*/
+         aliens[i].direction = 'f';    /*will create a character to follow tank movements later on*/
+      }
+      if(aliens[i].behavior == 4){  /*wall trap*/
+         aliens[i].direction = 't'; /*will create a character to create a wall with regular movement and randomly stops before closing player in completely*/
+      }
    }
    for (i=10; i<20; ++i) {
       aliens[i].r = 2;
@@ -68,7 +82,19 @@ int main() {
       aliens[i].pc = 0;
       aliens[i].ch = '#';
       aliens[i].alive = 1;
-      aliens[i].direction = 'r';
+      aliens[i].behavior = 1+(rand()%4);
+      if(aliens[i].behavior == 1){   /*wanderer*/
+         aliens[i].direction = 'w';    /*will create a character to randomize left/right movements later on*/
+      }
+      if(aliens[i].behavior == 2){   /*dodge*/
+         aliens[i].direction = 'd';    /*will create a character to dodge tank movements later on*/
+      }
+      if(aliens[i].behavior == 3){  /*follower*/
+         aliens[i].direction = 'f';    /*will create a character to follow tank movements later on*/
+      }
+      if(aliens[i].behavior == 4){  /*wall trap*/
+         aliens[i].direction = 't'; /*will create a character to create a wall with regular movement and randomly stops before closing player in completely*/
+      }
    }
    for (i=20; i<30; ++i) {
       aliens[i].r = 3;
@@ -77,7 +103,19 @@ int main() {
       aliens[i].pc = 0;
       aliens[i].ch = '#';
       aliens[i].alive = 1;
-      aliens[i].direction = 'r';
+      aliens[i].behavior = 1+(rand()%4);
+      if(aliens[i].behavior == 1){   /*wanderer*/
+         aliens[i].direction = 'w';    /*will create a character to randomize left/right movements later on*/
+      }
+      if(aliens[i].behavior == 2){   /*dodge*/
+         aliens[i].direction = 'd';    /*will create a character to dodge tank movements later on*/
+      }
+      if(aliens[i].behavior == 3){  /*follower*/
+         aliens[i].direction = 'f';    /*will create a character to follow tank movements later on*/
+      }
+      if(aliens[i].behavior == 4){  /*wall trap*/
+         aliens[i].direction = 't'; /*will create a character to create a wall with regular movement and randomly stops before closing player in completely*/
+      }
    }
    
    /* Set shot settings */
@@ -89,7 +127,12 @@ int main() {
    /* Set bomb settings */
    for (i=0; i<MAX_BOMBS; ++i) {
       bomb[i].active = 0;
-      bomb[i].ch = 'o';
+      if(alien[i].behavior == 4){
+         bomb[i].ch = '+';
+      }
+      else{
+         bomb[i].ch = 'o';
+      }
       bomb[i].loop = 0;
    }
    
@@ -116,7 +159,11 @@ int main() {
       for (i=0; i<MAX_BOMBS; ++i) {
          if (bomb[i].active == 1) {
             if (bomb[i].r < LINES) {
-               if (bomb[i].loop != 0) {
+               if (bomb[i].loop != 0 && bomb[i].ch == '+') {
+                  move(bomb[i].r-1,bomb[i].c);
+                  addch('+');
+               }
+               else if (bomb[i].loop != 0) {
                   move(bomb[i].r-1,bomb[i].c);
                   addch(' ');
                }
@@ -219,6 +266,7 @@ int main() {
                ++aliens[i].r;
                aliens[i].direction = 'r';
             }
+            else if
          }
       }
       
