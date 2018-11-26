@@ -224,7 +224,7 @@ int main() {
          win = 1;
          break;
       }
-      for (i=0; i<30; ++i) {
+      for (i=0; i<1; ++i) {
          if (aliens[i].r == LINES-1) {
             win = 0;
             break;
