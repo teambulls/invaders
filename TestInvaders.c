@@ -17,7 +17,7 @@ int main() {
    struct shoot shot[3];
    struct bomb bomb[MAX_BOMBS];
    struct options settings;
-   unsigned int input, loops=0, i=0, j=0, currentshots=0, currentbombs=0, currentaliens=1, count = 0;
+   unsigned int input, loops=0, i=0, j=0, currentshots=0, currentbombs=0, currentaliens=1, count = 0, lossType = 0;
    int random=0, score=0, win=-1;
    char tellscore[30];
    
@@ -226,6 +226,7 @@ int main() {
       }
       for (i=0; i<1; ++i) {
          if (aliens[i].r == LINES-1) {
+            lossType = 1;
             win = 0;
             break;
          }
@@ -473,7 +474,15 @@ void gameover(int win) {
    if (win == 0) {
       clear();
       move((LINES/2)-1,(COLS/2)-5);
-      addstr("YOU LOSE!  wat");
+      if(lossType == 1){
+         
+         addstr("wat wat wat wat");
+         
+      }else{
+        addstr("YOU LOSE!  wat"); 
+      }
+         
+      
       move((LINES/2),(COLS/2)-11);
       addstr("PRESS ANY KEY TO EXIT");
       move(0,COLS-1);
