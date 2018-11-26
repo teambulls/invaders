@@ -210,7 +210,7 @@ int main() {
                --aliens[i].c;
                
             /* Check alien's next positions */
-            if (count % 30 == 0 && count != 0) {
+            if (count % 10000 == 0 && count != 0) {
                ++aliens[i].r;
                
             }
