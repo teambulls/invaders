@@ -211,11 +211,11 @@ int main() {
             else if (aliens[i].c > tank.c)
                --aliens[i].c;
                
-            /* Check alien's next positions */
-            if (count % 10000 == 0 && count != 0) {
-               ++aliens[i].r;
+           /* Check alien's next positions */
+           // if (count % 10000 == 0 && count != 0) {
+             //  ++aliens[i].r;
                
-            }
+           // }
             
          }
       }
