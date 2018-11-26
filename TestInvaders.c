@@ -235,7 +235,7 @@ int main() {
       }
       for (i=0; i<MAX_BOMBS; ++i) {
          if (bomb[i].r == tank.r && bomb[i].c == tank.c) {
-            lossType = 1;
+            
             win = 0;
             break;
          }
