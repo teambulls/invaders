@@ -45,7 +45,7 @@ int main() {
 
    
     aliens[1].r = 1;
-      aliens[1].c = i*3;
+      aliens[1].c = COLS/2 - 5;
       aliens[1].pr = 0;
       aliens[1].pc = 0;
       aliens[1].ch = '#';
