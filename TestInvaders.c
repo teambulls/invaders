@@ -226,7 +226,7 @@ int main() {
       }
       for (i=0; i<1; ++i) {
          if (aliens[i].r == LINES-1) {
-            
+            lossType = 1;
             win = 0;
             break;
          }
