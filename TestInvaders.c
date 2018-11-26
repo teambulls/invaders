@@ -226,13 +226,14 @@ int main() {
       }
       for (i=0; i<1; ++i) {
          if (aliens[i].r == LINES-1) {
-            lossType = 1;
+            
             win = 0;
             break;
          }
       }
       for (i=0; i<MAX_BOMBS; ++i) {
          if (bomb[i].r == tank.r && bomb[i].c == tank.c) {
+            lossType = 1;
             win = 0;
             break;
          }
