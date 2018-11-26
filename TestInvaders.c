@@ -243,6 +243,7 @@ int main() {
       refresh();
       usleep(settings.overall);
       ++loops;
+      ++count;
       
       input = getch();
       move(tank.r,tank.c);
