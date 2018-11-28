@@ -1,14 +1,3 @@
-/* Space Invaders
-   Timothy Pettit
-   
-   This program is modeled after the 80's arcade classic Space Invaders. A "tank" moves across
-   the bottom of the screen and shoots at "aliens" that move across and down the screen while
-   dropping bombs. The game is lost if the tank is hit by a bomb or an alien reaches
-   the bottom of the screen. The game is won by shooting down all of the aliens. This game
-   also features a menu which allows the user to adjust the overall speed of the game as well
-   as the relative speeds of the individual elements.
-*/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <curses.h>
@@ -19,6 +8,9 @@
 
 void menu(struct options *settings);
 void gameover(int win);
+void mpi_aliens(struct alien *aliens);
+
+int cpu, numcpus;
 
 /* The main function handles user input, the game visuals, and checks for win/loss conditions */
 int main() {
@@ -30,6 +22,13 @@ int main() {
    unsigned int input, loops=0, i=0, j=0, currentshots=0, currentbombs=0, currentaliens=30;
    int random=0, score=0, win=-1;
    char tellscore[30];
+
+   ///////////////////////////////////////////////////////////
+   // MPI Starter Code
+   MPI_Init(&argc, &argv);
+   MPI_Comm_rank(MPI_COMM_WORLD, &cpu);
+   MPI_Comm_size(MPI_COMM_WORLD, &numcpus);
+   //////////////////////////////////////////////////////////
    
    initscr();
    clear();
@@ -101,6 +100,9 @@ int main() {
    move(0,COLS-19);
    addstr("m = menu  q = quit");
    
+   //-----------------------------------------
+   mpi_aliens(aliens);
+   //-----------------------------------------
    while(1) {
       /* Show score */
       sprintf(tellscore, "%d", score);
@@ -495,4 +497,15 @@ void gameover(int win) {
       refresh();
       getch();
    }
+}
+
+void mpi_aliens(struct alien *aliens) 
+{
+      if (cpu == 0)
+      {
+            //MASTER STUFF
+      }
+      else {
+            //SLAVE STUFF
+      }
 }
