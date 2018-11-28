@@ -17,17 +17,21 @@
 
 #define MAX_BOMBS 1000
 
+#define ALIENS 30
+#define ALIEN_ROWS 3
+#define ALIEN_COLUMNS (ALIENS / ALIEN_ROWS)
+
 void menu(struct options *settings);
 void gameover(int win);
 
 /* The main function handles user input, the game visuals, and checks for win/loss conditions */
 int main() {
    struct player tank;
-   struct alien aliens[30];
+   struct alien aliens[ALIENS];
    struct shoot shot[3];
    struct bomb bomb[MAX_BOMBS];
    struct options settings;
-   unsigned int input, loops=0, i=0, j=0, currentshots=0, currentbombs=0, currentaliens=30;
+   unsigned int input, loops=0, i=0, j=0, currentshots=0, currentbombs=0, currentaliens=ALIENS;
    int random=0, score=0, win=-1;
    char tellscore[30];
    
@@ -52,32 +56,20 @@ int main() {
    tank.ch = '^';
 
    /* Set aliens settings */
-   for (i=0; i<10; ++i) {
-      aliens[i].r = 1;
-      aliens[i].c = i*3;
-      aliens[i].pr = 0;
-      aliens[i].pc = 0;
-      aliens[i].ch = '#';
-      aliens[i].alive = 1;
-      aliens[i].direction = 'r';
-   }
-   for (i=10; i<20; ++i) {
-      aliens[i].r = 2;
-      aliens[i].c = (i-10)*3;
-      aliens[i].pr = 0;
-      aliens[i].pc = 0;
-      aliens[i].ch = '#';
-      aliens[i].alive = 1;
-      aliens[i].direction = 'r';
-   }
-   for (i=20; i<30; ++i) {
-      aliens[i].r = 3;
-      aliens[i].c = (i-20)*3;
-      aliens[i].pr = 0;
-      aliens[i].pc = 0;
-      aliens[i].ch = '#';
-      aliens[i].alive = 1;
-      aliens[i].direction = 'r';
+   unsigned int a = 0;
+   for (i = 0; i < ALIEN_ROWS; i++) {
+      for (j = 0; j < ALIEN_COLUMNS; j++) {
+         a = i * ALIEN_COLUMNS + j;
+         
+         aliens[a].r = (i + 1) * 2;
+         aliens[a].c = j * 5;
+         aliens[a].pr = 0;
+         aliens[a].pc = 0;
+         aliens[a].ch = '#';
+         aliens[a].alive = 1;
+         aliens[a].direction = 'r';
+
+      }
    }
    
    /* Set shot settings */
@@ -105,6 +97,12 @@ int main() {
       /* Show score */
       sprintf(tellscore, "%d", score);
       move(0,8);
+      addstr(tellscore);
+      
+      
+      // show numer of aliens left
+      sprintf(tellscore, "Aliens remaining: %d", currentaliens);
+      move(0, 20);
       addstr(tellscore);
       
       /* Move tank */
@@ -148,7 +146,7 @@ int main() {
                   addch(' ');
                }
                
-               for (j=0; j<30; ++j) {
+               for (j=0; j<ALIENS; ++j) {
                   if (aliens[j].alive == 1 && aliens[j].r == shot[i].r && aliens[j].pc == shot[i].c) {
                      score += 20;
                      aliens[j].alive = 0;
@@ -179,7 +177,7 @@ int main() {
       
       /* Move aliens */
       if (loops % settings.alien == 0)
-      for (i=0; i<30; ++i) {
+      for (i=0; i<ALIENS; ++i) {
          if (aliens[i].alive == 1) {
             move(aliens[i].pr,aliens[i].pc);
             addch(' ');
@@ -204,20 +202,33 @@ int main() {
                }
             }
             
-            /* Set alien's next position */
-            if (aliens[i].direction == 'l')
-               --aliens[i].c;
-            else if (aliens[i].direction == 'r')
-               ++aliens[i].c;
+            if (i % 3 == 0) {
                
-            /* Check alien's next positions */
-            if (aliens[i].c == COLS - 2) {
-               ++aliens[i].r;
-               aliens[i].direction = 'l';
+               if (aliens[i].c < tank.c)
+                  ++aliens[i].c;
+               else if (aliens[i].c > tank.c)
+                  --aliens[i].c;
+            
+            } else {
+               /* Set alien's next position */
+               if (aliens[i].direction == 'l')
+                  --aliens[i].c;
+               else if (aliens[i].direction == 'r')
+                  ++aliens[i].c;
+               
+               /* Check alien's next positions */
+               if (aliens[i].c == COLS - 2) {
+                  //++aliens[i].r;
+                  aliens[i].direction = 'l';
+               }
+               else if (aliens[i].c == 0) {
+                  //++aliens[i].r;
+                  aliens[i].direction = 'r';
+               }
             }
-            else if (aliens[i].c == 0) {
+            
+            if (loops % 250 == 0 && loops != 0) {
                ++aliens[i].r;
-               aliens[i].direction = 'r';
             }
          }
       }
@@ -228,7 +239,7 @@ int main() {
          win = 1;
          break;
       }
-      for (i=0; i<30; ++i) {
+      for (i=0; i<ALIENS; ++i) {
          if (aliens[i].r == LINES-1) {
             win = 0;
             break;
