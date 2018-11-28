@@ -501,11 +501,26 @@ void gameover(int win) {
 
 void mpi_aliens(struct alien *aliens) 
 {
-      if (cpu == 0)
+      if (cpu == 0)   //MASTER STUFF
       {
-            //MASTER STUFF
+            MPI_Send(
+            &a[numeach*slave],//void* data - Data buffer
+            numeach,          //int count  - How many elements in buffer
+            MPI_FLOAT,        //MPI_Datatype datatype - Type of elements
+            slave,            //int destination - 0 for master, else for slave
+            1,                //int tag - Message tag
+            MPI_COMM_WORLD);  //MPI_Comm communicator - Communicator, it's
+                              //                        initialized somewhere.                      
       }
-      else {
-            //SLAVE STUFF
+      else {    //SLAVE STUFF
+            MPI_Recv(
+            &a[numeach*slave],//void* data - Data buffer
+            numeach,          //int count  - How many elements in buffer            
+            MPI_FLOAT,        //MPI_Datatype datatype - Type of elements
+            slave,            //int destination - 0 for master, else for slave
+            2,                //int tag - Message tag    
+            MPI_COMM_WORLD,   //MPI_Comm communicator - Communicator, it's
+                              //                        initialized somewhere 
+            &status);         //MPI_Status* status - Provides info about the msg
       }
 }
