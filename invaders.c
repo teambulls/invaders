@@ -197,7 +197,7 @@ int main() {
             addch(' ');
             
             move(aliens[i].r,aliens[i].c);
-            addch(aliens[i].direction); //change back to ch
+            addch(aliens[i].ch); //change back to ch
             
             aliens[i].pr = aliens[i].r;
             aliens[i].pc = aliens[i].c;
@@ -263,13 +263,20 @@ int main() {
                      
                      random = 1+(rand()%100);
                      
-                        if(random > 50 && aliens[i].c != COLS - 3){
+                        if(random > 50 && aliens[i].c != COLS - 3 || aliens[i].c != COLS - 4){
                   
-                           aliens[i].c -= 2;
+                          aliens[i].c -= 2;
                   
+                        }else if(random > 50 && aliens[i].c == COLS - 3 || aliens[i].c == COLS - 4){
+                           
+                            aliens[i].c += 2;
+                           
                         }else if(random < 50 && aliens[i].c != 1){
                   
                            aliens[i].c += 2;
+                        }else {
+                           
+                           aliens[i].c -= 2;
                         }
                      
                         break;
