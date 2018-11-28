@@ -67,7 +67,7 @@ int main() {
          aliens[a].pc = 0;
          aliens[a].ch = '#';
          aliens[a].alive = 1;
-         aliens[a].direction = 'r';
+         
          
          aliens[i].behavior = 1+(rand()%4);
       if(aliens[i].behavior == 1){   /*wanderer*/
