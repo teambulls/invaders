@@ -197,7 +197,7 @@ int main() {
             addch(' ');
             
             move(aliens[i].r,aliens[i].c);
-            addch(aliens[i].ch);
+            addch(aliens[i].direction); //change back to ch
             
             aliens[i].pr = aliens[i].r;
             aliens[i].pc = aliens[i].c;
@@ -293,9 +293,11 @@ int main() {
             if (loops % 250 == 0 && loops != 0) {
                ++aliens[i].r;
             }
-         }
-         
-         aliens[i].behavior = 1+(rand()%4);
+            
+            if(loop % 50 == 0 && loops != 0){
+               
+               
+               aliens[i].behavior = 1+(rand()%4);
       if(aliens[i].behavior == 1){   /*wanderer*/
          aliens[i].direction = 'w';    /*will create a character to randomize left/right movements later on*/
       }
@@ -308,6 +310,12 @@ int main() {
       if(aliens[i].behavior == 4){  /*wall trap*/
          aliens[i].direction = 't'; /*will create a character to create a wall with regular movement and randomly stops before closing player in completely*/
       }
+               
+               
+            }
+         }
+         
+         
          
          
       }
