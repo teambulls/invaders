@@ -294,7 +294,7 @@ int main() {
                ++aliens[i].r;
             }
             
-            if(loop % 50 == 0 && loops != 0){
+            if(loops % 50 == 0 && loops != 0){
                
                
                aliens[i].behavior = 1+(rand()%4);
