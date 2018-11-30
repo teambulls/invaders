@@ -67,21 +67,7 @@ int main() {
          aliens[a].pc = 0;
          aliens[a].ch = '#';
          aliens[a].alive = 1;
-         
-         
-         aliens[i].behavior = 1+(rand()%4);
-      if(aliens[i].behavior == 1){   /*wanderer*/
-         aliens[i].direction = 'w';    /*will create a character to randomize left/right movements later on*/
-      }
-      if(aliens[i].behavior == 2){   /*dodge*/
-         aliens[i].direction = 'd';    /*will create a character to dodge tank movements later on*/
-      }
-      if(aliens[i].behavior == 3){  /*follower*/
-         aliens[i].direction = 'f';    /*will create a character to follow tank movements later on*/
-      }
-      if(aliens[i].behavior == 4){  /*wall trap*/
-         aliens[i].direction = 't'; /*will create a character to create a wall with regular movement and randomly stops before closing player in completely*/
-      }
+         aliens[a].direction = 'r';
 
       }
    }
@@ -197,7 +183,7 @@ int main() {
             addch(' ');
             
             move(aliens[i].r,aliens[i].c);
-            addch(aliens[i].ch); //change back to ch
+            addch(aliens[i].ch);
             
             aliens[i].pr = aliens[i].r;
             aliens[i].pc = aliens[i].c;
@@ -216,36 +202,21 @@ int main() {
                }
             }
             
-            
-            
-            if (aliens[i].direction == 'f' || aliens[i].direction == 't') {
+            if (i % 3 == 0) {
                
                if (aliens[i].c < tank.c)
                   ++aliens[i].c;
                else if (aliens[i].c > tank.c)
                   --aliens[i].c;
             
-            } else if (aliens[i].direction == 'w'){
-               
-               
-               random = 1+(rand()%100);
-               
-               if(random > 50 && aliens[i].c != COLS - 2){
-                  
-                  --aliens[i].c;
-                  
-               }else if(random < 50 && aliens[i].c != 0){
-                  
-                  ++aliens[i].c;
-               }
-               /*
-                //Set alien's next position 
+            } else {
+               /* Set alien's next position */
                if (aliens[i].direction == 'l')
                   --aliens[i].c;
                else if (aliens[i].direction == 'r')
                   ++aliens[i].c;
                
-               // Check alien's next positions 
+               /* Check alien's next positions */
                if (aliens[i].c == COLS - 2) {
                   //++aliens[i].r;
                   aliens[i].direction = 'l';
@@ -254,77 +225,12 @@ int main() {
                   //++aliens[i].r;
                   aliens[i].direction = 'r';
                }
-               */
-            }else if (aliens[i].direction == 'd'){
-               
-               for (j=0; j<3; ++j) {
-                  
-                  if(shot[j].active == 1 && shot[j].c == aliens[i].pc && shot[j].r > aliens[i].r - 2){
-                     
-                     random = 1+(rand()%100);
-                     
-                        if(random > 50 && aliens[i].c != COLS - 3 || aliens[i].c != COLS - 4){
-                  
-                          aliens[i].c -= 2;
-                  
-                        }else if(random > 50 && aliens[i].c == COLS - 3 || aliens[i].c == COLS - 4){
-                           
-                            aliens[i].c += 2;
-                           
-                        }else if(random < 50 && aliens[i].c != 1){
-                  
-                           aliens[i].c += 2;
-                        }else {
-                           
-                           aliens[i].c -= 2;
-                        }
-                     
-                        break;
-                  }else{
-                     
-                     if(random > 50 && aliens[i].c != COLS - 2){
-                  
-                        --aliens[i].c;
-                  
-                     }else if(random < 50 && aliens[i].c != 0){
-                  
-                        ++aliens[i].c;
-                         }
-                     
-                  }
-                  
-               }
-               
             }
             
             if (loops % 250 == 0 && loops != 0) {
                ++aliens[i].r;
             }
-            
-            if(loops % 50 == 0 && loops != 0){
-               
-               
-               aliens[i].behavior = 1+(rand()%4);
-      if(aliens[i].behavior == 1){   /*wanderer*/
-         aliens[i].direction = 'w';    /*will create a character to randomize left/right movements later on*/
-      }
-      if(aliens[i].behavior == 2){   /*dodge*/
-         aliens[i].direction = 'd';    /*will create a character to dodge tank movements later on*/
-      }
-      if(aliens[i].behavior == 3){  /*follower*/
-         aliens[i].direction = 'f';    /*will create a character to follow tank movements later on*/
-      }
-      if(aliens[i].behavior == 4){  /*wall trap*/
-         aliens[i].direction = 't'; /*will create a character to create a wall with regular movement and randomly stops before closing player in completely*/
-      }
-               
-               
-            }
          }
-         
-         
-         
-         
       }
       
       
