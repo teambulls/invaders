@@ -227,7 +227,7 @@ int main() {
                         //++aliens[i].r;
                         aliens[i].direction = 'r';
                   }
-                  if ((settings.bombchance - (1+rand()%100) >= 0 && currentbombs < MAX_BOMBS) 
+                  if (settings.bombchance - (1+rand()%100) >= 0 && currentbombs < MAX_BOMBS) 
                   {
                         for (j=0; j<MAX_BOMBS; ++j) {
                               if (bomb[j].active == 0) {
