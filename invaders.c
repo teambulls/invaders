@@ -69,7 +69,7 @@ int main() {
          aliens[a].alive = 1;
          
          
-         aliens[i].behavior = 2;
+         aliens[i].behavior = 1+(rand()%4);
       if(aliens[i].behavior == 1){   /*wanderer*/
          aliens[i].direction = 'w';    /*will create a character to randomize left/right movements later on*/
       }
@@ -304,7 +304,7 @@ int main() {
             if(loops % 50 == 0 && loops != 0){
                
                
-               aliens[i].behavior = 2;
+               aliens[i].behavior = 1+(rand()%4);
       if(aliens[i].behavior == 1){   /*wanderer*/
          aliens[i].direction = 'w';    /*will create a character to randomize left/right movements later on*/
       }
