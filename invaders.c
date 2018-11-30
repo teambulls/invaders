@@ -204,10 +204,10 @@ int main() {
             {
                   int randir = rand()%1;
                   if(randir == 0){
-                      alien[i].direction == 'l';
+                      aliens[i].direction == 'l';
                   }
                   else if(randir == 1){
-                      alien[i].direction == 'r';
+                      aliens[i].direction == 'r';
                   }
 
                   /*set alien next position*/
@@ -215,7 +215,7 @@ int main() {
                       --aliens[i].c;
                   }
                   if(aliens[i].direction == 'r'){
-                      ++aliens[c].c;
+                      ++aliens[i].c;
                   }
 
                   /* Check alien's next positions */
