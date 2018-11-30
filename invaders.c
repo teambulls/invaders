@@ -185,7 +185,7 @@ int main() {
             addch(' ');
             
             move(aliens[i].r,aliens[i].c);
-            addch(aliens[i].ch);
+            addch(aliens[i].behavior);
             
             aliens[i].pr = aliens[i].r;
             aliens[i].pc = aliens[i].c;
@@ -202,6 +202,7 @@ int main() {
 
             if (aliens[i].behavior == 0) //Wander around the screen.
             {
+                  
                   int randir = rand()%1;
                   if(randir == 0){
                       aliens[i].direction == 'l';
