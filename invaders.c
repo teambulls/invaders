@@ -271,39 +271,31 @@ int main(int argc, char **argv) {
                   }
             } 
             else if (aliens[i].behavior == 2){      /*Dodge tank shots*/
-                aliens[i].ch = 'D';
-                
-                for(j = 0; j < 3; ++j){
-                    /*checks if tank shot is active, same col, and less than 3 rows from alien*/
-                  if(shot[j].active == 1 && (shot[j].c == aliens[i].pc) && (shot[j].r > (aliens[i].r - 2))){
-                        
-                        if (aliens[i].direction == 'l') {
-                            aliens[i].direction = 'r';
-                        }
-                        else if (aliens[i].direction == 'r') {
-                            aliens[i].direction = 'l';
-                        }
-
-                        /*set alien next position*/
-                        if (aliens[i].direction == 'l') {
-                              if (aliens[i].c != 0) {
-                                    aliens[i].c = aliens[i].c - 2;
-                              } 
-                              else {
-                                    aliens[i].c = aliens[i].c + 2;
-                                    aliens[i].direction = 'r';
-                              }
-                        }
-                        else if (aliens[i].direction == 'r') {
-                              if (aliens[i].c != COLS - 2) {
-                                    aliens[i].c = aliens[i].c + 2;
-                              } else {
-                                    aliens[i].c = aliens[i].c - 2;
+                  aliens[i].ch = 'D';
+                  int dodged = 0;
+                  for (j=0; j<3; ++j) {  
+                        if (shot[j].active == 1 && abs(shot[j].c - aliens[j].c) <= 1 && shot[j].r > aliens[i].r && shot[j].r - aliens[i].r <= 5 && dodged == 0) {     
+                              random = rand() % 2;
+                     
+                              if (aliens[i].c >= COLS - 3) {
+                                    aliens[i].c -= 2;
                                     aliens[i].direction = 'l';
+                              } else if (aliens[i].c <= 1) {
+                                    aliens[i].c += 2;
+                                    aliens[i].direction = 'r';
+                              } else { 
+                                    if (random == 0) {
+                                          aliens[i].c += 2;
+                                          aliens[i].direction = 'r';
+                                    } else {
+                                          aliens[i].c -= 2;
+                                          aliens[i].direction = 'l';
+                                    }
                               }
-                        } 
+                        dodged = 1;
+                        }          
                   }
-                }
+      }
 
                 /* Check if alien should drop bomb */
                 if ((settings.bombchance - random) >= 0 && currentbombs < MAX_BOMBS) {
@@ -336,7 +328,7 @@ int main(int argc, char **argv) {
                   }
             }
             
-            
+            //aliens[i].time++;
             if (loops % 250 == 0 && loops != 0) {
                ++aliens[i].r;
             }
