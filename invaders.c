@@ -67,6 +67,8 @@ int main() {
          aliens[a].pc = 0;
          aliens[a].ch = '#';
          aliens[a].alive = 1;
+         random = rand()%4;
+         aliens[a].behavior = random;
          aliens[a].direction = 'r';
 
       }
@@ -198,17 +200,24 @@ int main() {
             //  (exp)   4- Wall Trap -> Alien will try to trap the player with a wall of bombs at a random spot
             //////////////////////////////////
 
-            //Gotta fix the random changes or no stages will make sense.
-            random = rand()%4;
-
-            if (random == 0) //Wander around the screen.
+            if (alien[i].behavior == 0) //Wander around the screen.
             {
-                  /* Set alien's next position */
-                  if (aliens[i].direction == 'l')
-                        --aliens[i].c;
-                  else if (aliens[i].direction == 'r')
-                        ++aliens[i].c;
-               
+                  int randir = rand()%1;
+                  if(randir == 0){
+                      alien[i].direction == 'l';
+                  }
+                  else if(randir == 1){
+                      alien[i].direction == 'r';
+                  }
+
+                  /*set alien next position*/
+                  if(alien[i].direction == 'l'){
+                      --aliens[i].c;
+                  }
+                  if(alien[i].direction == 'r'){
+                      ++aliens[c].c;
+                  }
+
                   /* Check alien's next positions */
                   if (aliens[i].c == COLS - 2) {
                         //++aliens[i].r;
