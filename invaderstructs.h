@@ -11,6 +11,7 @@ struct alien {
 	int r,c;
 	int pr,pc;
 	int alive; /* 1=alive 0=destroyed */
+	int time; 
 	int behavior; /*1=wanderer 2=dodge 3=follower 4=wall*/
 	char direction; /* 'l'=left 'r'=right */
 	char ch;
