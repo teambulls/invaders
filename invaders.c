@@ -200,7 +200,7 @@ int main() {
             //  (exp)   4- Wall Trap -> Alien will try to trap the player with a wall of bombs at a random spot
             //////////////////////////////////
 
-            if (alien[i].behavior == 0) //Wander around the screen.
+            if (aliens[i].behavior == 0) //Wander around the screen.
             {
                   int randir = rand()%1;
                   if(randir == 0){
@@ -211,10 +211,10 @@ int main() {
                   }
 
                   /*set alien next position*/
-                  if(alien[i].direction == 'l'){
+                  if(aliens[i].direction == 'l'){
                       --aliens[i].c;
                   }
-                  if(alien[i].direction == 'r'){
+                  if(aliens[i].direction == 'r'){
                       ++aliens[c].c;
                   }
 
