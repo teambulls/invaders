@@ -240,7 +240,7 @@ int main() {
                         }
                   }
             } 
-            else if (alien[i].behavior == 1) //Follow the player.
+            else if (aliens[i].behavior == 1) //Follow the player.
             {     
                   if (aliens[i].c < tank.c)
                         ++aliens[i].c;
@@ -260,12 +260,12 @@ int main() {
                         }
                   }
             } 
-            else if (alien[i].behavior == 2) //Dodge to avoid getting hit by a tank shot.
+            else if (aliens[i].behavior == 2) //Dodge to avoid getting hit by a tank shot.
             {
                   //Check if it's in the same column as the shot, and if it's ~3 rows below it 
                   //dip left or right to run away.
             } 
-            else if (alien[i].behavior == 3) //Wall trap the player.
+            else if (aliens[i].behavior == 3) //Wall trap the player.
             {
 
             }
