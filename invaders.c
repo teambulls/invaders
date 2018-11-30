@@ -35,6 +35,7 @@ int main(int argc, char **argv) {
    struct bomb bomb[MAX_BOMBS];
    struct options settings;
    unsigned int input, loops=0, i=0, j=0, currentshots=0, currentbombs=0, currentaliens=ALIENS;
+   int cageExists = 0;
    int random=0, score=0, win=-1;
    char tellscore[30];
 
@@ -202,7 +203,24 @@ int main(int argc, char **argv) {
             random = rand() % 200;
             
             if (random < aliens[i].time) {
-                aliens[i].behavior = rand() % 4;
+                
+                if (aliens[i].behavior == 3) {
+                    random = rand() % 3;
+                    cageExists = 0;
+                } else {
+                    
+                    if (cageExists) {
+                        random = rand() % 3;
+                    } else {
+                        random = rand() % 4;
+                        
+                        if (random == 3) {
+                            cageExists = 1;
+                        }
+                    }
+                }
+                
+                aliens[i].behavior = random;
             }
 
             if (aliens[i].behavior == 0){ //Wander around the screen.   
