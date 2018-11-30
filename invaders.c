@@ -587,3 +587,9 @@ void gameover(int win) {
       getch();
    }
 }
+
+void mpi_aliens(struct alien* aliens[ALIENS], struct player* tank, 
+      struct shoot* shot[3], struct bomb* bombs[MAX_BOMBS] )
+      {
+            
+      }
