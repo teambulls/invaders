@@ -199,10 +199,10 @@ int main(int argc, char **argv) {
             aliens[i].pr = aliens[i].r;
             aliens[i].pc = aliens[i].c;
             
-            random = rand % 200;
+            random = rand() % 200;
             
             if (random < aliens[i].time) {
-                aliens[i].behavior = rand % 4;
+                aliens[i].behavior = rand() % 4;
             }
 
             if (aliens[i].behavior == 0){ //Wander around the screen.   
@@ -271,38 +271,38 @@ int main(int argc, char **argv) {
                   }
             } 
             else if (aliens[i].behavior == 2){      /*Dodge tank shots*/
-                aliens.ch = 'D';
+                aliens[i].ch = 'D';
                 
                 for(j = 0; j < 3; ++j){
                     /*checks if tank shot is active, same col, and less than 3 rows from alien*/
-                    if(shot[j].active == 1 && shot[j].c == aliens[i].pc && (shot[j].r - aliens[i].r) < 3){
-                        if(aliens[i].direction == 'l'){
+                  if(shot[j].active == 1 && (shot[j].c == aliens[i].pc) && (shot[j].r > (aliens[i].r - 2))){
+                        
+                        if (aliens[i].direction == 'l') {
                             aliens[i].direction = 'r';
                         }
-                        else if( aliens[i].direction == 'r'){
+                        else if (aliens[i].direction == 'r') {
                             aliens[i].direction = 'l';
                         }
 
                         /*set alien next position*/
                         if (aliens[i].direction == 'l') {
-                            if (aliens[i].c != 0) {
-                                --aliens[i].c;
-                            } 
-                                else {
-                                    ++aliens[i].c;
+                              if (aliens[i].c != 0) {
+                                    aliens[i].c = aliens[i].c - 2;
+                              } 
+                              else {
+                                    aliens[i].c = aliens[i].c + 2;
                                     aliens[i].direction = 'r';
-                                }
-                            }
-                            else if (aliens[i].direction == 'r') {
-                                if (aliens[i].c != COLS - 2) {
-                                    ++aliens[i].c;
-                                } 
-                                else {
-                                    --aliens[i].c;
+                              }
+                        }
+                        else if (aliens[i].direction == 'r') {
+                              if (aliens[i].c != COLS - 2) {
+                                    aliens[i].c = aliens[i].c + 2;
+                              } else {
+                                    aliens[i].c = aliens[i].c - 2;
                                     aliens[i].direction = 'l';
-                                }
-                            }
-                    }
+                              }
+                        } 
+                  }
                 }
 
                 /* Check if alien should drop bomb */
@@ -617,15 +617,3 @@ void gameover(int win) {
       getch();
    }
 }
-© 2018 GitHub, Inc.
-Terms
-Privacy
-Security
-Status
-Help
-Contact GitHub
-Pricing
-API
-Training
-Blog
-About
