@@ -24,6 +24,8 @@
 
 void menu(struct options *settings);
 void gameover(int win);
+void mpi_aliens(struct *alien aliens, struct *player tank,
+                  struct *shoot shot, struct *bomb bombs);
 
 int cpu, numcpus;
 
@@ -626,4 +628,10 @@ void gameover(int win) {
       refresh();
       getch();
    }
+}
+
+void mpi_aliens(struct *alien aliens, struct *player tank,
+                  struct *shoot shot, struct *bomb bombs)
+{
+
 }
