@@ -17,8 +17,8 @@
 
 #define MAX_BOMBS 1000
 
-#define ALIENS 30
-#define ALIEN_ROWS 3
+#define ALIENS 1
+#define ALIEN_ROWS 1
 #define ALIEN_COLUMNS (ALIENS / ALIEN_ROWS)
 
 void menu(struct options *settings);
@@ -201,8 +201,7 @@ int main() {
             //////////////////////////////////
 
             if (aliens[i].behavior == 0) //Wander around the screen.
-            {
-                  
+            {    
                   int randir = rand()%1;
                   if(randir == 0){
                       aliens[i].direction == 'l';
