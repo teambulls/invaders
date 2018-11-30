@@ -13,19 +13,22 @@
 #include <stdlib.h>
 #include <curses.h>
 #include <time.h>
+#include "mpi.h"
 #include "invaderstructs.h"
 
 #define MAX_BOMBS 1000
 
-#define ALIENS 1
+#define ALIENS 5
 #define ALIEN_ROWS 1
 #define ALIEN_COLUMNS (ALIENS / ALIEN_ROWS)
 
 void menu(struct options *settings);
 void gameover(int win);
 
+int cpu, numcpus;
+
 /* The main function handles user input, the game visuals, and checks for win/loss conditions */
-int main() {
+int main(int argc, char **argv) {
    struct player tank;
    struct alien aliens[ALIENS];
    struct shoot shot[3];
@@ -34,6 +37,12 @@ int main() {
    unsigned int input, loops=0, i=0, j=0, currentshots=0, currentbombs=0, currentaliens=ALIENS;
    int random=0, score=0, win=-1;
    char tellscore[30];
+
+   /// - MPI Starter - ////////////////////////////////////////////////////////// 
+   MPI_Init(&argc, &argv);
+   MPI_Comm_rank(MPI_COMM_WORLD, &cpu);
+   MPI_Comm_size(MPI_COMM_WORLD, &numcpus);
+   //////////////////////////////////////////////////////////
    
    initscr();
    clear();
@@ -185,7 +194,7 @@ int main() {
             addch(' ');
             
             move(aliens[i].r,aliens[i].c);
-            addch(aliens[i].behavior);
+            addch(aliens[i].ch);
             
             aliens[i].pr = aliens[i].r;
             aliens[i].pc = aliens[i].c;
@@ -202,12 +211,13 @@ int main() {
 
             if (aliens[i].behavior == 0) //Wander around the screen.
             {    
-                  int randir = rand()%1;
+                  aliens[i].ch = 'W';
+                  int randir = rand()%2;
                   if(randir == 0){
-                      aliens[i].direction == 'l';
+                      aliens[i].direction = 'l';
                   }
                   else if(randir == 1){
-                      aliens[i].direction == 'r';
+                      aliens[i].direction = 'r';
                   }
 
                   /*set alien next position*/
@@ -242,6 +252,7 @@ int main() {
             } 
             else if (aliens[i].behavior == 1) //Follow the player.
             {     
+                  aliens[i].ch == 'F';
                   if (aliens[i].c < tank.c)
                         ++aliens[i].c;
                   else if (aliens[i].c > tank.c)
@@ -262,25 +273,39 @@ int main() {
             } 
             else if (aliens[i].behavior == 2) //Dodge to avoid getting hit by a tank shot.
             {
+                  aliens[i].ch = 'D';
                   //Check if it's in the same column as the shot, and if it's ~3 rows below it 
                   //dip left or right to run away.
+                  /* Check if alien should drop bomb */
+                  if ((settings.bombchance - random) >= 0 && currentbombs < MAX_BOMBS) {
+                        for (j=0; j<MAX_BOMBS; ++j) {
+                              if (bomb[j].active == 0) {
+                              bomb[j].active = 1;
+                              ++currentbombs;
+                              bomb[j].r = aliens[i].r + 1;
+                              bomb[j].c = aliens[i].c;
+                              break;
+                              }
+                        }
+                  }
             } 
             else if (aliens[i].behavior == 3) //Wall trap the player.
             {
-
-            }
-            /* Check if alien should drop bomb */
-            if ((settings.bombchance - random) >= 0 && currentbombs < MAX_BOMBS) {
-               for (j=0; j<MAX_BOMBS; ++j) {
-                  if (bomb[j].active == 0) {
-                     bomb[j].active = 1;
-                     ++currentbombs;
-                     bomb[j].r = aliens[i].r + 1;
-                     bomb[j].c = aliens[i].c;
-                     break;
+                  aliens[i].ch = 'T';
+                  /* Check if alien should drop bomb */
+                  if ((settings.bombchance - random) >= 0 && currentbombs < MAX_BOMBS) {
+                        for (j=0; j<MAX_BOMBS; ++j) {
+                              if (bomb[j].active == 0) {
+                              bomb[j].active = 1;
+                              ++currentbombs;
+                              bomb[j].r = aliens[i].r + 1;
+                              bomb[j].c = aliens[i].c;
+                              break;
+                              }
+                        }
                   }
-               }
             }
+            
             
             if (loops % 250 == 0 && loops != 0) {
                ++aliens[i].r;
