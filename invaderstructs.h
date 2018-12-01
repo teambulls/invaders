@@ -6,7 +6,7 @@ struct player {
 	int r,c;
 	char ch;
 };
-
+ 
 struct alien {
 	int r,c;
 	int pr,pc;
