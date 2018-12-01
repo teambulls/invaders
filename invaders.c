@@ -533,7 +533,7 @@ void gameover(int win) {
    }
 }
 
-void mpi_aliens(struct options* settings,struct alien* aliens, struct player* tank,
+void mpi_aliens(struct options *settings,struct alien* aliens, struct player *tank,
                   struct shoot* shot, struct bomb* bombs, int *current_bombs, int *cageExists, int loops) 
 {
    unsigned int i = 0, j = 0;
