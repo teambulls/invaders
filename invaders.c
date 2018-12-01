@@ -534,8 +534,10 @@ void gameover(int win) {
 }
 
 void mpi_aliens(struct alien* aliens, struct player* tank,
-                  struct shoot* shot, struct bomb* bombs)
+                  struct shoot* shot, struct bomb* bombs, int *current_bombs)
 {
+   unsigned int i = 0, j = 0;
+   
     //This is the section to be parallelized
     for (i=0; i<ALIENS; ++i) 
     {
@@ -717,6 +719,8 @@ void mpi_aliens(struct alien* aliens, struct player* tank,
 void init(struct options* settings, struct player* tank, struct alien* aliens, 
             struct shoot* shot, struct bomb* bomb) {
 
+   unsigned int i = 0, j = 0;
+   
     //Ncurses initialization procedures
     initscr();
     clear();
@@ -740,8 +744,8 @@ void init(struct options* settings, struct player* tank, struct alien* aliens,
 
     /* Set aliens settings */
     unsigned int a = 0, random = 0;
-    for (int i = 0; i < ALIEN_ROWS; i++) {
-        for (int j = 0; j < ALIEN_COLUMNS; j++) {
+    for ( i = 0; i < ALIEN_ROWS; i++) {
+        for ( j = 0; j < ALIEN_COLUMNS; j++) {
             a = i * ALIEN_COLUMNS + j;
             
             aliens[a].r = (i + 1) * 2;
@@ -758,13 +762,13 @@ void init(struct options* settings, struct player* tank, struct alien* aliens,
     }
 
     /* Set shot settings */
-    for (int i=0; i<3; ++i) {
+    for ( i=0; i<3; ++i) {
         shot[i].active = 0;
         shot[i].ch = '*';
     }
 
     /* Set bomb settings */
-    for (int i=0; i<MAX_BOMBS; ++i) {
+    for ( i=0; i<MAX_BOMBS; ++i) {
         bomb[i].active = 0;
         bomb[i].ch = 'o';
         bomb[i].loop = 0;
@@ -781,9 +785,11 @@ void init(struct options* settings, struct player* tank, struct alien* aliens,
 
 void move_bombs(struct bomb* bomb, int loops, int bomb_speed, int *current_bombs)
 {
+   
+   unsigned int i = 0;
     /* Move bombs */
       if (loops % bomb_speed == 0)
-      for (int i=0; i<MAX_BOMBS; ++i) {
+      for (i=0; i<MAX_BOMBS; ++i) {
          if (bomb[i].active == 1) {
             if (bomb[i].r < LINES) {
                if (bomb[i].loop != 0) {
@@ -812,9 +818,11 @@ void move_bombs(struct bomb* bomb, int loops, int bomb_speed, int *current_bombs
 void move_shots(struct shoot* shot, struct alien* aliens, int loops, struct options* settings, 
                     int *current_shots, int *current_aliens, int *score)
 {
+   
+   unsigned int i = 0, j = 0;
     /* Move shots */
       if (loops % settings->shots == 0)
-      for (int i=0; i<3; ++i) 
+      for (i=0; i<3; ++i) 
       {
          if (shot[i].active == 1) 
          {
@@ -826,7 +834,7 @@ void move_shots(struct shoot* shot, struct alien* aliens, int loops, struct opti
                   addch(' ');
                }
                
-               for (int j=0; j<ALIENS; ++j) 
+               for (j=0; j<ALIENS; ++j) 
                {
                   if (aliens[j].alive == 1 && aliens[j].r == shot[i].r && aliens[j].pc == shot[i].c) 
                   {
