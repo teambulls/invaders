@@ -615,7 +615,7 @@ void mpi_aliens(struct options *settings,struct alien* aliens, struct player *ta
                     }
                 }
                 //Randomly decides to drop a bomb.
-                if ((settings.bombchance - random) >= 0 && current_bombs < MAX_BOMBS) 
+                if ((settings->bombchance - random) >= 0 && current_bombs < MAX_BOMBS) 
                 {
                     for (j=0; j<MAX_BOMBS; ++j) 
                     {
@@ -633,12 +633,12 @@ void mpi_aliens(struct options *settings,struct alien* aliens, struct player *ta
             else if (aliens[i].behavior == 1) //Follow the player.
             {     
                 aliens[i].ch == 'F';
-                if (aliens[i].c < tank.c)
+                if (aliens[i].c < tank->c)
                         ++aliens[i].c;
-                else if (aliens[i].c > tank.c)
+                else if (aliens[i].c > tank->c)
                         --aliens[i].c;
                 //Drops bombs when the player and the alien are in nearby columns
-                if (abs(aliens[i].c - tank.c) < 4)
+                if (abs(aliens[i].c - tank->c) < 4)
                 {
                         for (j=0; j<MAX_BOMBS; ++j) {
                             if (bombs[j].active == 0) {
@@ -691,7 +691,7 @@ void mpi_aliens(struct options *settings,struct alien* aliens, struct player *ta
             {
                 aliens[i].ch = 'T';
                 /* Check if alien should drop bomb */
-                if ((settings.bombchance - (random/2)) >= 0 && current_bombs < MAX_BOMBS) {
+                if ((settings->bombchance - (random/2)) >= 0 && current_bombs < MAX_BOMBS) {
                         for (j=0; j<MAX_BOMBS; ++j) 
                         {
                             if (bombs[j].active == 0) 
