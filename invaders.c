@@ -533,8 +533,8 @@ void gameover(int win) {
    }
 }
 
-void mpi_aliens(struct alien* aliens, struct player* tank,
-                  struct shoot* shot, struct bomb* bombs, int *current_bombs)
+void mpi_aliens(struct options* settings,struct alien* aliens, struct player* tank,
+                  struct shoot* shot, struct bomb* bombs, int *current_bombs, int *cageExists, int loops) 
 {
    unsigned int i = 0, j = 0;
    
@@ -552,7 +552,7 @@ void mpi_aliens(struct alien* aliens, struct player* tank,
             aliens[i].pr = aliens[i].r;
             aliens[i].pc = aliens[i].c;
             
-            random = rand() % 200;
+           int random = rand() % 200;
             
             if (random < aliens[i].time) {
                 
@@ -619,12 +619,12 @@ void mpi_aliens(struct alien* aliens, struct player* tank,
                 {
                     for (j=0; j<MAX_BOMBS; ++j) 
                     {
-                        if (bomb[j].active == 0) 
+                        if (bombs[j].active == 0) 
                         {
-                            bomb[j].active = 1;
+                            bombs[j].active = 1;
                             ++current_bombs;
-                            bomb[j].r = aliens[i].r + 1;
-                            bomb[j].c = aliens[i].c;
+                            bombs[j].r = aliens[i].r + 1;
+                            bombs[j].c = aliens[i].c;
                             break;
                         }
                     }
@@ -641,11 +641,11 @@ void mpi_aliens(struct alien* aliens, struct player* tank,
                 if (abs(aliens[i].c - tank.c) < 4)
                 {
                         for (j=0; j<MAX_BOMBS; ++j) {
-                            if (bomb[j].active == 0) {
-                                    bomb[j].active = 1;
+                            if (bombs[j].active == 0) {
+                                    bombs[j].active = 1;
                                     ++current_bombs;
-                                    bomb[j].r = aliens[i].r + 1;
-                                    bomb[j].c = aliens[i].c;
+                                    bombs[j].r = aliens[i].r + 1;
+                                    bombs[j].c = aliens[i].c;
                                     break;
                             }
                         }
@@ -694,12 +694,12 @@ void mpi_aliens(struct alien* aliens, struct player* tank,
                 if ((settings.bombchance - (random/2)) >= 0 && current_bombs < MAX_BOMBS) {
                         for (j=0; j<MAX_BOMBS; ++j) 
                         {
-                            if (bomb[j].active == 0) 
+                            if (bombs[j].active == 0) 
                             {
-                                bomb[j].active = 1;
+                                bombs[j].active = 1;
                                 ++current_bombs;
-                                bomb[j].r = aliens[i].r + 1;
-                                bomb[j].c = aliens[i].c;
+                                bombs[j].r = aliens[i].r + 1;
+                                bombs[j].c = aliens[i].c;
                                 break;
                             }
                         }
