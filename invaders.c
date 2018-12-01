@@ -24,8 +24,8 @@
 
 void menu(struct options *settings);
 void gameover(int win);
-void mpi_aliens(struct alien* aliens, struct player* tank,
-                  struct shoot* shot, struct bomb* bombs);
+void mpi_aliens(struct options *settings, struct alien* aliens, struct player* tank,
+                  struct shoot* shot, struct bomb* bombs, int *current_bombs, int *cageExists, int loops );
 void init(struct options* settings, struct player* tank, struct alien* aliens, 
             struct shoot* shot, struct bomb* bomb);
 void move_bombs(struct bomb* bomb, int loops, int bomb_speed, int *current_bombs);
