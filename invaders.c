@@ -26,12 +26,10 @@
 // to test with different alien amounts.
 //
 // Original code had a hardcoded number of aliens (30 in total, 3 rows)
-#define ALIENS 4
-#define ALIEN_ROWS 1
+#define ALIENS 55
+#define ALIEN_ROWS 5
 #define ALIEN_COLUMNS (ALIENS / ALIEN_ROWS)
 ////////////////////////////////////////////////////////////////////////////////
-
-
 
 /* Function prototypes */
 void menu(struct options *settings);
@@ -51,8 +49,6 @@ void mpi_move_aliens(struct alien* aliens, struct mpi_alien* mpi_aliens,
         struct bomb* bomb, unsigned int* currentbombs, MPI_Datatype type);
 ////////////////////////////////////////////////////////////////////////////////
 
-
-
 ////////////////////////////////////////////////////////////////////////////////
 // MPI CODE
 //
@@ -60,8 +56,6 @@ void mpi_move_aliens(struct alien* aliens, struct mpi_alien* mpi_aliens,
 // numcpus is the total number of processors
 int cpu, numcpus;
 ////////////////////////////////////////////////////////////////////////////////
-
-
 
 /* The main function handles user input, the game visuals, and checks for win/loss conditions */
 int main(int argc, char** argv)
@@ -73,7 +67,6 @@ int main(int argc, char** argv)
     MPI_Comm_size(MPI_COMM_WORLD, &numcpus);
     //////////////////////////////////////////////////////////
    
-   
     struct player tank;
     struct alien aliens[ALIENS];
     struct shoot shot[3];
@@ -83,7 +76,7 @@ int main(int argc, char** argv)
     int random = 0, score = 0, win = -1;
     struct timespec tim, tim2;
     char tellscore[30];
-    //srand(time(NULL));
+    srand(time(NULL));
     
     
     ////////////////////////////////////////////////////////////////////////////
@@ -178,8 +171,7 @@ int main(int argc, char** argv)
     MPI_Type_create_struct(5, mpi_alien_block_counts, mpi_alien_offsets, mpi_alien_old_types, &mpi_alien_type);
     MPI_Type_commit(&mpi_alien_type);
     ////////////////////////////////////////////////////////////////////////////
-    
-    
+
     if (cpu == 0)
     {
         init(&settings, &tank, aliens, shot, bomb);
