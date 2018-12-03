@@ -11,12 +11,21 @@
    Original source code: https://github.com/Chaser324/invaders/blob/master/invaders.c
 */
 
+/////////////////////////////////
+// known bugs: screen does not clear after the game ends sometimes,
+//             aliens freeze onto the screen if they go out of bounds (this can
+//             happen if in the init() function the aliens are initialized to
+//             a row that is greater than LINES or a column that is greater than COLS,
+
+/////////////////////////
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <curses.h>
 #include <time.h>
 #include <sys/time.h>
 #include "invaderstructs.h"
+#include "mpi.h"
 
 #define MAX_BOMBS 1000
 
@@ -30,6 +39,7 @@
 #define ALIEN_COLUMNS (ALIENS / ALIEN_ROWS)
 ////////////////////////////////////////////////////////////////////////////////
 
+
 /* Function prototypes */
 void menu(struct options *settings);
 void gameover(int win);
@@ -39,12 +49,29 @@ void gameover(int win);
 void init(struct options *settings, struct player *tank, struct alien *aliens, struct shoot *shot, struct bomb *bomb);
 void move_bombs(struct bomb *bomb, unsigned int *currentbombs, struct options *settings, unsigned int loops);
 void move_shots(struct shoot *shot, unsigned int *currentshots, struct alien *aliens, unsigned int *currentaliens, int *score, struct options *settings, unsigned int loops);
-void move_alien(struct alien *alien, struct bomb *bomb, unsigned int *currentbombs, struct player *tank, struct shoot *shot, struct options *settings, unsigned int loops);
+void move_alien(struct alien *alien, int *shoot_bomb, struct player *tank, struct shoot *shot, struct options *settings, unsigned int loops);
+
+void mpi_move_aliens(struct alien *aliens, struct mpi_alien *mpi_aliens, struct bomb *bomb, unsigned int *currentbombs, MPI_Datatype type);
+////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////
+// MPI CODE
+//
+// cpu holds my processor number, cpu=0 is master, rest are slaves
+// numcpus is the total number of processors
+int cpu = 0, numcpus = 1;  // set default values
 ////////////////////////////////////////////////////////////////////////////////
 
 /* The main function handles user input, the game visuals, and checks for win/loss conditions */
 int main(int argc, char **argv)
 {
+    ///////////////////////////////////////////////////////////
+    // MPI Starter Code
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &cpu);
+    MPI_Comm_size(MPI_COMM_WORLD, &numcpus);
+    //////////////////////////////////////////////////////////
+
     struct player tank;
     struct alien aliens[ALIENS];
     struct shoot shot[3];
@@ -62,163 +89,304 @@ int main(int argc, char **argv)
     int iterations = 0;
     ////////////////////////////////////////////////////////////////////////////
 
-    init(&settings, &tank, aliens, shot, bomb);
+    ////////////////////////////////////////////////////////////////////////////
+    // Used for passing required data to each cpu
+    struct mpi_alien mpi_aliens[ALIENS];
+
+    /* Need to create MPI data type for the struct mpi_alien type
+       https://computing.llnl.gov/tutorials/mpi/#Derived_Data_Types */
+    MPI_Aint lb;
+    MPI_Aint extent;
+
+    // MPI_Datatype for struct alien
+    MPI_Datatype alien_type;
+    MPI_Datatype alien_old_types[2] = { MPI_INT, MPI_CHAR };
+    int alien_block_counts[2] = { 7, 2 };
+    MPI_Aint alien_offsets[2];
+    alien_offsets[0] = 0;
+    MPI_Type_get_extent(MPI_INT, &lb, &extent);
+    alien_offsets[1] = 7 * extent;
+    MPI_Type_create_struct(2, alien_block_counts, alien_offsets, alien_old_types, &alien_type);
+    MPI_Type_commit(&alien_type);
+
+    // MPI_Datatype for struct options
+    MPI_Datatype options_type;
+    MPI_Datatype options_old_types[1] = { MPI_INT };
+    int options_block_counts[1] = { 5 };
+    MPI_Aint options_offsets[1] = { 0 };
+    MPI_Type_create_struct(1, options_block_counts, options_offsets, options_old_types, &options_type);
+    MPI_Type_commit(&options_type);
+
+    // MPI_Datatype for struct player
+    MPI_Datatype player_type;
+    MPI_Datatype player_old_types[2] = { MPI_INT, MPI_CHAR };
+    int player_block_counts[2] = { 2, 1 };
+    MPI_Aint player_offsets[2];
+    player_offsets[0] = 0;
+    MPI_Type_get_extent(MPI_INT, &lb, &extent);
+    player_offsets[1] = 2 * extent;
+    MPI_Type_create_struct(2, player_block_counts, player_offsets, player_old_types, &player_type);
+    MPI_Type_commit(&player_type);
+
+    // MPI_Datatype for struct shoot
+    MPI_Datatype shoot_type;
+    MPI_Datatype shoot_old_types[2] = { MPI_INT, MPI_CHAR };
+    int shoot_block_counts[2] = { 3, 1 };
+    MPI_Aint shoot_offsets[2];
+    shoot_offsets[0] = 0;
+    MPI_Type_get_extent(MPI_INT, &lb, &extent);
+    shoot_offsets[1] = 3 * extent;
+    MPI_Type_create_struct(2, shoot_block_counts, shoot_offsets, shoot_old_types, &shoot_type);
+    MPI_Type_commit(&shoot_type);
+
+    // MPI_Datatype for array of struct shoot
+    MPI_Datatype shoot_array_type;
+    MPI_Type_contiguous(3, shoot_type, &shoot_array_type);
+    MPI_Type_commit(&shoot_array_type);
+
+    // MPI_Datatype for struct mpi_alien
+    MPI_Datatype mpi_alien_type;
+    MPI_Datatype mpi_alien_old_types[6] = { alien_type, MPI_INT, MPI_UNSIGNED, options_type, player_type, shoot_array_type };
+    int mpi_alien_block_counts[6] = { 1, 1, 1, 1, 1, 1 };
+    MPI_Aint mpi_alien_offsets[6];
+    mpi_alien_offsets[0] = 0;
+    MPI_Type_get_extent(alien_type, &lb, &extent);
+    mpi_alien_offsets[1] = 1 * extent;
+    MPI_Type_get_extent(MPI_INT, &lb, &extent);
+    mpi_alien_offsets[2] = 1 * extent + mpi_alien_offsets[1];
+    MPI_Type_get_extent(MPI_UNSIGNED, &lb, &extent);
+    mpi_alien_offsets[3] = 1 * extent + mpi_alien_offsets[2];
+    MPI_Type_get_extent(options_type, &lb, &extent);
+    mpi_alien_offsets[4] = 1 * extent + mpi_alien_offsets[3];
+    MPI_Type_get_extent(player_type, &lb, &extent);
+    mpi_alien_offsets[5] = 1 * extent + mpi_alien_offsets[4];
+    MPI_Type_create_struct(6, mpi_alien_block_counts, mpi_alien_offsets, mpi_alien_old_types, &mpi_alien_type);
+    MPI_Type_commit(&mpi_alien_type);
+    ////////////////////////////////////////////////////////////////////////////
+    
+    // all cpus must call this so that ncurses constants COLS and LINES are set properly
+    initscr();
+
+    if (cpu == 0)
+    {
+        init(&settings, &tank, aliens, shot, bomb);
+    }
 
     while (1)
     {
-        /* Show score */
-        sprintf(buffer, "%d   ", score);
-        move(0, 8);
-        addstr(buffer);
-
-        /* Show number of aliens left */
-        sprintf(buffer, "Aliens: %d   ", currentaliens);
-        move(0, 15);
-        addstr(buffer);
-
-        /* Move tank */
-        move(tank.r, tank.c);
-        addch(tank.ch);
-
-        move_bombs(bomb, &currentbombs, &settings, loops);
-        move_shots(shot, &currentshots, aliens, &currentaliens, &score, &settings, loops);
-
-        if (loops % settings.alien == 0)
+        if (cpu == 0)
         {
-            for (i = 0; i < ALIENS; i++)
+            /* Show score */
+            sprintf(buffer, "%d   ", score);
+            move(0, 8);
+            addstr(buffer);
+
+            /* Show number of aliens left */
+            sprintf(buffer, "Aliens: %d   ", currentaliens);
+            move(0, 15);
+            addstr(buffer);
+
+            /* Move tank */
+            move(tank.r, tank.c);
+            addch(tank.ch);
+
+            move_bombs(bomb, &currentbombs, &settings, loops);
+            move_shots(shot, &currentshots, aliens, &currentaliens, &score, &settings, loops);
+
+            if (loops % settings.alien == 0)
             {
-                ////////////////////////////////////////////////////////////////////
-                // Draw the aliens onto the screen.
-                // Originally the aliens were drawn inside the loop where the alien
-                // positions are changed. We had to separate this process for the mpi
-                // modifications, otherwise each core would be attempting to print
-                // to the screen.
-                if (aliens[i].alive == 1)
+                for (i = 0; i < ALIENS; i++)
                 {
-                    move(aliens[i].pr, aliens[i].pc);
-                    addch(' ');
+                    ////////////////////////////////////////////////////////////////////
+                    // Draw the aliens onto the screen.
+                    // Originally the aliens were drawn inside the loop where the alien
+                    // positions are changed. We had to separate this process for the mpi
+                    // modifications, otherwise each core would be attempting to print
+                    // to the screen.
+                    if (aliens[i].alive == 1)
+                    {
+                        move(aliens[i].pr, aliens[i].pc);
+                        addch(' ');
 
-                    move(aliens[i].r, aliens[i].c);
-                    addch(aliens[i].ch);
+                        move(aliens[i].r, aliens[i].c);
+                        addch(aliens[i].ch);
 
-                    aliens[i].pr = aliens[i].r;
-                    aliens[i].pc = aliens[i].c;
+                        aliens[i].pr = aliens[i].r;
+                        aliens[i].pc = aliens[i].c;
+                    }
                 }
             }
         }
 
-        if (loops % settings.alien == 0)
+        // prepare the data structure for the other cpus
+        if (cpu == 0)
         {
-            ////////////////////////////////////////////////////////////////////
-            // This is the section of code that will be timed
-            gettimeofday(&start, 0);
-            
             for (i = 0; i < ALIENS; i++)
             {
-                move_alien(&aliens[i], bomb, &currentbombs, &tank, shot, &settings, loops);
+                mpi_aliens[i].alien = aliens[i];
+                mpi_aliens[i].shoot_bomb = 0;
+                mpi_aliens[i].loops = loops;
+                mpi_aliens[i].settings = settings;
+                mpi_aliens[i].tank = tank;
+                mpi_aliens[i].shot[0] = shot[0];
+                mpi_aliens[i].shot[1] = shot[1];
+                mpi_aliens[i].shot[2] = shot[2];
             }
+        }
+
+        
+        ////////////////////////////////////////////////////////////////////////
+        // This is the section of code that will be timed
+        gettimeofday(&start, 0);
             
-            iterations++;
-            gettimeofday(&end, 0);
-            total += (end.tv_sec - start.tv_sec) * 1000.0 + (end.tv_usec - start.tv_usec) / 1000.0;
-            ////////////////////////////////////////////////////////////////////
-        }
+        /* Move aliens in parallel */
+        mpi_move_aliens(aliens, mpi_aliens, bomb, &currentbombs, mpi_alien_type);
+        
+        iterations++;
+        gettimeofday(&end, 0);
+        total += (end.tv_sec - start.tv_sec) * 1000.0 + (end.tv_usec - start.tv_usec) / 1000.0;
+        ////////////////////////////////////////////////////////////////////////
 
-        /* See if game has been won or lost*/
-        if (currentaliens == 0)
+        
+        if (cpu == 0)
         {
-            win = 1;
-            break;
-        }
-        for (i = 0; i < ALIENS; ++i)
-        {
-            if (aliens[i].r == LINES - 1)
+            /* See if game has been won or lost*/
+            if (currentaliens == 0)
             {
-                win = 0;
+                win = 1;
+                MPI_Bcast(&win, 1, MPI_INT, 0, MPI_COMM_WORLD);
                 break;
             }
-        }
-        for (i = 0; i < MAX_BOMBS; ++i)
-        {
-            if (bomb[i].r == tank.r && bomb[i].c == tank.c)
+            for (i = 0; i < ALIENS; ++i)
             {
-                
-                bomb[i].active = 0;
-                move(bomb[i].r - 1, bomb[i].c);
-                addch(' ');
-                if (iterations == 1000) break;
-                /*
-                win = 0;
-                break;
-                */
-            }
-        }
-
-        move(0, COLS - 1);
-        refresh();
-        tim.tv_sec = 0;
-        tim.tv_nsec = settings.overall * 1000;
-        nanosleep(&tim, NULL);
-        ++loops;
-
-        input = getch();
-        move(tank.r, tank.c);
-        addch(' ');
-
-        /* Check input */
-        if (input == 'q')
-        {
-            win = 2;
-        }
-        else if (input == KEY_LEFT)
-        {
-            --tank.c;
-        }
-        else if (input == KEY_RIGHT)
-        {
-            ++tank.c;
-        }
-        else if (input == ' ' && currentshots < 3)
-        {
-            for (i = 0; i < 3; ++i)
-            {
-                if (shot[i].active == 0)
+                if (aliens[i].r == LINES - 1)
                 {
-                    shot[i].active = 1;
-                    ++currentshots;
-                    --score;
-                    shot[i].r = LINES - 2;
-                    shot[i].c = tank.c;
+                    win = 0;
                     break;
                 }
             }
-        }
-        else if (input == 'm')
-            menu(&settings);
+            for (i = 0; i < MAX_BOMBS; ++i)
+            {
+                if (bomb[i].r == tank.r && bomb[i].c == tank.c)
+                {
+                    
+                    /*bomb[i].active = 0;
+                    move(bomb[i].r - 1, bomb[i].c);
+                    addch(' ');
+                    if (iterations == 1000) break;*/
+                    
+                    win = 0;
+                    break;
+                    
+                }
+            }
 
-        if (win != -1)
-        {
-            break;
-        }
+            move(0, COLS - 1);
+            refresh();
+            tim.tv_sec = 0;
+            tim.tv_nsec = settings.overall * 1000;
+            nanosleep(&tim, NULL);
+            ++loops;
 
-        /* Check for valid tank position */
-        if (tank.c > COLS - 2)
-        {
-            tank.c = COLS - 2;
+            input = getch();
+            move(tank.r, tank.c);
+            addch(' ');
+
+            /* Check input */
+            if (input == 'q')
+            {
+                win = 2;
+            }
+            else if (input == KEY_LEFT)
+            {
+                --tank.c;
+            }
+            else if (input == KEY_RIGHT)
+            {
+                ++tank.c;
+            }
+            else if (input == ' ' && currentshots < 3)
+            {
+                for (i = 0; i < 3; ++i)
+                {
+                    if (shot[i].active == 0)
+                    {
+                        shot[i].active = 1;
+                        ++currentshots;
+                        --score;
+                        shot[i].r = LINES - 2;
+                        shot[i].c = tank.c;
+                        break;
+                    }
+                }
+            }
+            else if (input == 'm')
+                menu(&settings);
+
+            if (win != -1)
+            {
+                MPI_Bcast(&win, 1, MPI_INT, 0, MPI_COMM_WORLD);
+                break;
+            }
+
+            /* Check for valid tank position */
+            if (tank.c > COLS - 2)
+            {
+                tank.c = COLS - 2;
+            }
+            else if (tank.c < 0)
+            {
+                tank.c = 0;
+            }
+            
+            MPI_Bcast(&win, 1, MPI_INT, 0, MPI_COMM_WORLD);
         }
-        else if (tank.c < 0)
+        else
         {
-            tank.c = 0;
+            int x = 0;
+            MPI_Bcast(&x, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+            if (x != -1)
+                break;
         }
     }
 
-    gameover(win);
+    if (cpu == 0)
+    {
+        gameover(win);
+    }
+    
+    // all cpus must call this since they all called initscr()
+    clear();
     endwin();
     
-    /* Print the running time */
-    printf("Iterations: %d\n", iterations);
-    printf("Totaled running time: %f ms\n", total); 
-    printf("Average time per iteration: %f ms\n", (total / iterations));
+    if (cpu == 0)
+    {
+        /* Print the running time */
+        printf("Iterations: %d\n", iterations);
+        printf("Totaled running time: %f ms\n", total); 
+        printf("Average time per iteration: %f ms\n", (total / iterations));
+        
+        /************************* Test code **********************************/
+        // print alien positions
+        /*
+        for (i = 0; i < ALIENS; i++)
+        {
+            printf("Alien %d: r=%d, c=%d\n", i, aliens[i].r, aliens[i].c);
+        }
+        */
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // MPI Finish Code
+    MPI_Type_free(&alien_type);
+    MPI_Type_free(&player_type);
+    MPI_Type_free(&options_type);
+    MPI_Type_free(&shoot_type);
+    MPI_Type_free(&shoot_array_type);
+    MPI_Type_free(&mpi_alien_type);
+    MPI_Finalize();
+    ////////////////////////////////////////////////////////////////////////////////
 
     return 0;
 }
@@ -466,13 +634,12 @@ void init(struct options *settings, struct player *tank, struct alien *aliens, s
     unsigned int i = 0, j = 0, a = 0;
 
     /* ncurses initialization */
-    initscr();
     clear();
     noecho();
     cbreak();
     nodelay(stdscr, 1);
     keypad(stdscr, 1);
-
+    
     // time_t seed = 100000;
     srand(time(NULL));
 
@@ -626,8 +793,78 @@ void move_shots(struct shoot *shot, unsigned int *currentshots, struct alien *al
     }
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// MPI function to move aliens
+void mpi_move_aliens(struct alien *aliens, struct mpi_alien *mpi_aliens, struct bomb *bomb, unsigned int *currentbombs, MPI_Datatype type)
+{
+    int i = 0, j = 0, k = 0, slave;
+    MPI_Status status;
+
+    int numeach = ALIENS / numcpus;
+
+    // I AM THE MASTER
+    if (cpu == 0)
+    {
+        // send data to the slaves
+        for (slave = 1; slave < numcpus; slave++)
+        {
+            MPI_Send(&mpi_aliens[numeach * slave], numeach, type, slave, 1, MPI_COMM_WORLD);
+        }
+
+        // master cpu does some operations too
+        for (i = 0; i < numeach; i++)
+        {
+            move_alien(&mpi_aliens[i].alien, &mpi_aliens[i].shoot_bomb, &mpi_aliens[i].tank, mpi_aliens[i].shot, &mpi_aliens[i].settings, mpi_aliens[i].loops);
+        }
+
+        // receive data from the slaves
+        for (slave = 1; slave < numcpus; slave++)
+        {
+            MPI_Recv(&mpi_aliens[numeach * slave], numeach, type, slave, 2, MPI_COMM_WORLD, &status);
+        }
+
+        for (i = 0; i < ALIENS; i++)
+        {
+            // copy alien data back into the original array
+            aliens[i] = mpi_aliens[i].alien;
+
+            if (mpi_aliens[i].shoot_bomb == 1)
+            {
+                // from original code: alien shoots a bomb
+                for (j = k; j < MAX_BOMBS; ++j)
+                {
+                    if (bomb[j].active == 0)
+                    {
+                        bomb[j].active = 1;
+                        ++(*currentbombs);
+                        bomb[j].r = aliens[i].r + 1;
+                        bomb[j].c = aliens[i].c;
+                        break;
+                    }
+                }
+                k = j;
+            }
+        }
+    }
+    // I AM A SLAVE
+    else
+    {
+        struct mpi_alien data[numeach];
+        // receive data from the master
+        MPI_Recv(&data[0], numeach, type, 0, 1, MPI_COMM_WORLD, &status);
+
+        for (i = 0; i < numeach; i++)
+        {
+            move_alien(&data[i].alien, &data[i].shoot_bomb, &data[i].tank, data[i].shot, &data[i].settings, data[i].loops);
+        }
+
+        // send the new data back to the master
+        MPI_Send(&data[0], numeach, type, 0, 2, MPI_COMM_WORLD);
+    }
+}
+
 /* Calculate next position of an alien and whether it shot a bomb. */
-void move_alien(struct alien *alien, struct bomb *bomb, unsigned int *currentbombs, struct player *tank, struct shoot *shot, struct options *settings, unsigned int loops)
+void move_alien(struct alien *alien, int *shoot_bomb, struct player *tank, struct shoot *shot, struct options *settings, unsigned int loops)
 {
     int random = 0;
     unsigned int j = 0;
@@ -636,6 +873,16 @@ void move_alien(struct alien *alien, struct bomb *bomb, unsigned int *currentbom
     {
         if (alien->alive == 1)
         {
+            /************************ Test Code *******************************/
+            // simply move the aliens to the right to test if the multiple
+            // cpus are correctly doing their job
+            /*
+            ++alien->c;
+            if (alien->c > COLS - 2) alien->c = COLS - 2;
+            return;
+            */
+            /******************************************************************/
+            
             ////////////////////////////////////////////////////////////////////
             // This is the start of our main modifications to allow
             // aliens to have different behaviors.
@@ -709,19 +956,9 @@ void move_alien(struct alien *alien, struct bomb *bomb, unsigned int *currentbom
 
                 // check if alien should drop bomb
                 random = 1 + (rand() % 100);
-                if (settings->bombchance - random >= 0 && *currentbombs < MAX_BOMBS)
+                if (settings->bombchance - random >= 0)
                 {
-                    for (j = 0; j < MAX_BOMBS; ++j)
-                    {
-                        if (bomb[j].active == 0)
-                        {
-                            bomb[j].active = 1;
-                            ++(*currentbombs);
-                            bomb[j].r = alien->r + 1;
-                            bomb[j].c = alien->c;
-                            break;
-                        }
-                    }
+                    *shoot_bomb = 1;
                 }
             }
             else if (alien->behavior == FOLLOW)
@@ -737,19 +974,9 @@ void move_alien(struct alien *alien, struct bomb *bomb, unsigned int *currentbom
 
                 // drops bombs when the player and the alien are in close proximity (nearby columns)
                 random = 1 + rand() % 100;
-                if (settings->bombchance - random >= 0 && abs(alien->c - tank->c) <= 5 && *currentbombs < MAX_BOMBS)
+                if (settings->bombchance - random >= 0 && abs(alien->c - tank->c) <= 5)
                 {
-                    for (j = 0; j < MAX_BOMBS; ++j)
-                    {
-                        if (bomb[j].active == 0)
-                        {
-                            bomb[j].active = 1;
-                            ++(*currentbombs);
-                            bomb[j].r = alien->r + 1;
-                            bomb[j].c = alien->c;
-                            break;
-                        }
-                    }
+                    *shoot_bomb = 1;
                 }
             }
             else if (alien->behavior == DODGE)
@@ -820,20 +1047,7 @@ void move_alien(struct alien *alien, struct bomb *bomb, unsigned int *currentbom
             else if (alien->behavior == WALL)
             {
                 // just constantly shoot bombs
-                if (*currentbombs < MAX_BOMBS)
-                {
-                    for (j = 0; j < MAX_BOMBS; ++j)
-                    {
-                        if (bomb[j].active == 0)
-                        {
-                            bomb[j].active = 1;
-                            ++(*currentbombs);
-                            bomb[j].r = alien->r + 1;
-                            bomb[j].c = alien->c;
-                            break;
-                        }
-                    }
-                }
+                *shoot_bomb = 1;
             }
 
             // timer for all aliens to move down a row. Don't move down on the first loop of the game
