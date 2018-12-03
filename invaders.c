@@ -49,7 +49,7 @@ void mpi_move_aliens(struct alien *aliens, struct mpi_alien *mpi_aliens, struct 
 //
 // cpu holds my processor number, cpu=0 is master, rest are slaves
 // numcpus is the total number of processors
-int cpu, numcpus;
+int cpu = 0, numcpus = 1;  // set default values
 ////////////////////////////////////////////////////////////////////////////////
 
 /* The main function handles user input, the game visuals, and checks for win/loss conditions */
