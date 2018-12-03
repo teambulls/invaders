@@ -270,14 +270,14 @@ int main(int argc, char **argv)
                 if (bomb[i].r == tank.r && bomb[i].c == tank.c)
                 {
                     
-                    bomb[i].active = 0;
+                    /*bomb[i].active = 0;
                     move(bomb[i].r - 1, bomb[i].c);
                     addch(' ');
-                    if (iterations == 1000) break;
-                    /*
+                    if (iterations == 1000) break;*/
+                    
                     win = 0;
                     break;
-                    */
+                    
                 }
             }
 
