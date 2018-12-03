@@ -11,10 +11,18 @@
    Original source code: https://github.com/Chaser324/invaders/blob/master/invaders.c
 */
 
+/////////////////////////////////
+// known bugs: screen does not clear after the game ends sometimes,
+
+// In general, we noticed more problems when running on ursula server.
+// Ocelot server was not so bad.
+/////////////////////////
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <curses.h>
 #include <time.h>
+#include <sys/time.h>
 #include "invaderstructs.h"
 #include "mpi.h"
 
@@ -25,10 +33,11 @@
 // to test with different alien amounts.
 //
 // Original code had a hardcoded number of aliens (30 in total, 3 rows)
-#define ALIENS 9
-#define ALIEN_ROWS 3
+#define ALIENS 30
+#define ALIEN_ROWS 5
 #define ALIEN_COLUMNS (ALIENS / ALIEN_ROWS)
 ////////////////////////////////////////////////////////////////////////////////
+
 
 /* Function prototypes */
 void menu(struct options *settings);
@@ -71,6 +80,13 @@ int main(int argc, char **argv)
     unsigned int input, loops = 0, i = 0, j = 0, currentshots = 0, currentbombs = 0, currentaliens = ALIENS;
     int random = 0, score = 0, win = -1;
     char buffer[30];
+    
+    ////////////////////////////////////////////////////////////////////////////
+    // Variables to help time the program run-time
+    double total = 0.0;
+    struct timeval start, end;
+    int iterations = 0;
+    ////////////////////////////////////////////////////////////////////////////
 
     ////////////////////////////////////////////////////////////////////////////
     // Used for passing required data to each cpu
@@ -146,6 +162,9 @@ int main(int argc, char **argv)
     MPI_Type_create_struct(6, mpi_alien_block_counts, mpi_alien_offsets, mpi_alien_old_types, &mpi_alien_type);
     MPI_Type_commit(&mpi_alien_type);
     ////////////////////////////////////////////////////////////////////////////
+    
+    // all cpus must call this so that ncurses constants COLS and LINES are set properly
+    initscr();
 
     if (cpu == 0)
     {
@@ -214,9 +233,20 @@ int main(int argc, char **argv)
             }
         }
 
+        
+        ////////////////////////////////////////////////////////////////////////
+        // This is the section of code that will be timed
+        gettimeofday(&start, 0);
+            
         /* Move aliens in parallel */
         mpi_move_aliens(aliens, mpi_aliens, bomb, &currentbombs, mpi_alien_type);
+        
+        iterations++;
+        gettimeofday(&end, 0);
+        total += (end.tv_sec - start.tv_sec) * 1000.0 + (end.tv_usec - start.tv_usec) / 1000.0;
+        ////////////////////////////////////////////////////////////////////////
 
+        
         if (cpu == 0)
         {
             /* See if game has been won or lost*/
@@ -238,8 +268,15 @@ int main(int argc, char **argv)
             {
                 if (bomb[i].r == tank.r && bomb[i].c == tank.c)
                 {
+                    
+                    bomb[i].active = 0;
+                    move(bomb[i].r - 1, bomb[i].c);
+                    addch(' ');
+                    if (iterations == 1000) break;
+                    /*
                     win = 0;
                     break;
+                    */
                 }
             }
 
@@ -316,7 +353,27 @@ int main(int argc, char **argv)
     if (cpu == 0)
     {
         gameover(win);
-        endwin();
+    }
+    
+    // all cpus must call this since they all called initscr()
+    clear();
+    endwin();
+    
+    if (cpu == 0)
+    {
+        /* Print the running time */
+        printf("Iterations: %d\n", iterations);
+        printf("Totaled running time: %f ms\n", total); 
+        printf("Average time per iteration: %f ms\n", (total / iterations));
+        
+        /************************* Test code **********************************/
+        // print alien positions
+        /*
+        for (i = 0; i < ALIENS; i++)
+        {
+            printf("Alien %d: r=%d, c=%d\n", i, aliens[i].r, aliens[i].c);
+        }
+        */
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -576,13 +633,12 @@ void init(struct options *settings, struct player *tank, struct alien *aliens, s
     unsigned int i = 0, j = 0, a = 0;
 
     /* ncurses initialization */
-    initscr();
     clear();
     noecho();
     cbreak();
     nodelay(stdscr, 1);
     keypad(stdscr, 1);
-
+    
     // time_t seed = 100000;
     srand(time(NULL));
 
@@ -816,6 +872,16 @@ void move_alien(struct alien *alien, int *shoot_bomb, struct player *tank, struc
     {
         if (alien->alive == 1)
         {
+            /************************ Test Code *******************************/
+            // simply move the aliens to the right to test if the multiple
+            // cpus are correctly doing their job
+            /*
+            ++alien->c;
+            if (alien->c > COLS - 2) alien->c = COLS - 2;
+            return;
+            */
+            /******************************************************************/
+            
             ////////////////////////////////////////////////////////////////////
             // This is the start of our main modifications to allow
             // aliens to have different behaviors.
