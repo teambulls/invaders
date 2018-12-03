@@ -13,9 +13,10 @@
 
 /////////////////////////////////
 // known bugs: screen does not clear after the game ends sometimes,
+//             aliens freeze onto the screen if they go out of bounds (this can
+//             happen if in the init() function the aliens are initialized to
+//             a row that is greater than LINES or a column that is greater than COLS,
 
-// In general, we noticed more problems when running on ursula server.
-// Ocelot server was not so bad.
 /////////////////////////
 
 #include <stdio.h>
